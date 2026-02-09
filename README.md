@@ -163,4 +163,11 @@ flutter run
 ## 作者
 
 基于 Flutter 3.19.6 + Provider 架构开发  
-全中文 WMS 仓储管理系统解决方案
+全中文 WMS 仓储管理系统解决方案  
+
+## 版本信息
+
+- Flutter: 3.19.6+
+- Dart: 3.0+
+- Provider: ^6.1.1
+- 项目版本: 1.0.0+1
