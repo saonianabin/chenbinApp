@@ -14,8 +14,13 @@ dependencies:
   provider: ^6.1.1
   cupertino_icons: ^1.0.6
   permission_handler: ^11.0.1
-  barcode_scan2: ^4.3.2
-  shared_preferences: ^2.2.2
+  mobile_scanner: ^5.1.1
+  dio: ^5.9.0
+  tdesign_flutter: ^0.2.0
+  shared_preferences: ^2.2.3
+  flutter_app_update: ^3.2.2
+  device_info_plus: ^9.1.2
+  package_info_plus: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -30,8 +35,11 @@ flutter:
     - assets/icons/
 
   fonts:
-    - family: PingFang
+    - family: NotoSansSC
       fonts:
-        - asset: fonts/PingFang-Regular.ttf
-        - asset: fonts/PingFang-Medium.ttf
+        - asset: fonts//NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: fonts/NotoSansSC-Medium.ttf
           weight: 500
+        - asset: fonts/NotoSansSC-Medium.ttf
+          weight: 700

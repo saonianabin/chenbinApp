@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../common/Http.dart';
+import '../common/SnackBarUtils.dart';
+import '../models/inventory_item.dart';
 import '../providers/inventory_provider.dart';
 import '../utils/app_theme.dart';
 import 'inventory_detail_screen.dart';
@@ -14,6 +17,36 @@ class InventoryListScreen extends StatefulWidget {
 }
 
 class _InventoryListScreenState extends State<InventoryListScreen> {
+  List _listAll = [];
+
+  void _fetchInData() async {
+    var response = await Http.get(
+      "/stock/product/query",
+      queryParameters: {
+        "productCode": null,
+        "productName": null,
+        "pageIndex": 1,
+        "pageSize": 10
+      },
+    );
+    print(response);
+    if (response["code"] == 200) {
+      setState(() {
+        _listAll = response["data"]["datas"];
+        //_focusNode.unfocus();
+      });
+    } else {
+      SnackBarUtils.showError(context, response["msg"]);
+    }
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +67,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
           // 搜索栏
           const CustomSearchBar(),
           // 分类筛选
-          Consumer<InventoryProvider>(
+          /*Consumer<InventoryProvider>(
             builder: (context, inventoryProvider, child) {
               return Container(
                 height: 50,
@@ -62,12 +95,21 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                 ),
               );
             },
-          ),
+          ),*/
           // 库存列表
           Expanded(
             child: Consumer<InventoryProvider>(
               builder: (context, inventoryProvider, child) {
-                final filteredItems = inventoryProvider.filteredItems;
+                final filteredItems = [];
+                //final filteredItems = inventoryProvider.filteredItems;
+
+                // inventoryProvider.getList.then((value) => {
+                //   setState(() {
+                //   print("返回参数");
+                //   print(value);
+                //   })
+                // });
+
                 
                 if (filteredItems.isEmpty) {
                   return const Center(
@@ -94,14 +136,17 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: filteredItems.length,
+                  itemCount: _listAll.length,
                   itemBuilder: (context, index) {
-                    final item = filteredItems[index];
+                    var item = filteredItems[index];
+                    var rowData = _listAll[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: InventoryItemCard(
                         item: item,
-                        onTap: () => _navigateToDetail(context, item.id),
+                        rowData: rowData,
+                        onTap: (){},
+                        //onTap: () => _navigateToDetail(context, item.id),
                       ),
                     );
                   },

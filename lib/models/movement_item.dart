@@ -62,7 +62,7 @@ class MovementItem {
 
   // 计算总数量
   double get totalQuantity {
-    return details.fold(0.0, (sum, detail) => sum + detail.quantity);
+    return details.fold(0.0, (sum, detail) => sum + detail.finalQuantity);
   }
 
   // 获取总项目数

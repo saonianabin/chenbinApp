@@ -1,4 +1,18 @@
 class InventoryItem {
+
+  final String brandName;
+  final String categoryName;
+  final String productCode;
+  final String productId;
+  final String productName;
+  final String scCode;
+  final String scId;
+  final String scName;
+  final dynamic stockNum;
+  final dynamic taxAmount;
+  final dynamic taxPrice;
+
+
   final String id;
   final String sku;
   final String name;
@@ -13,6 +27,11 @@ class InventoryItem {
   final DateTime lastUpdated;
 
   InventoryItem({
+    required this.brandName, required this.categoryName, required this.productCode,
+    required this.productId, required this.productName, required this.scCode, required this.scId,
+    required this.scName, required this.stockNum, required this.taxAmount, required this.taxPrice,
+
+
     required this.id,
     required this.sku,
     required this.name,
@@ -65,6 +84,19 @@ class InventoryItem {
     DateTime? lastUpdated,
   }) {
     return InventoryItem(
+      brandName: id ?? this.brandName,
+      categoryName: id ?? this.categoryName,
+      productCode: id ?? this.productCode,
+      productId: id ?? this.productId,
+      productName: id ?? this.productName,
+      scCode: id ?? this.scCode,
+      scId: id ?? this.scId,
+      scName: id ?? this.scName,
+      stockNum: id ?? this.stockNum,
+      taxAmount: id ?? this.taxAmount,
+      taxPrice: id ?? this.taxPrice,
+
+
       id: id ?? this.id,
       sku: sku ?? this.sku,
       name: name ?? this.name,
@@ -99,18 +131,30 @@ class InventoryItem {
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
     return InventoryItem(
-      id: json['id'],
-      sku: json['sku'],
-      name: json['name'],
-      category: json['category'],
-      unit: json['unit'],
-      currentStock: (json['currentStock'] as num).toDouble(),
-      frozenStock: (json['frozenStock'] as num).toDouble(),
-      minStock: (json['minStock'] as num).toDouble(),
-      maxStock: (json['maxStock'] as num).toDouble(),
-      location: json['location'],
-      description: json['description'],
-      lastUpdated: DateTime.parse(json['lastUpdated']),
+      brandName: json['brandName'] ?? '',
+      categoryName: json['categoryName'] ?? '',
+      productCode: json['productCode'] ?? '',
+      productId: json['productId'] ?? '',
+      productName: json['productName'] ?? '',
+      scCode: json['scCode'] ?? '',
+      scId: json['scId'] ?? '',
+      scName: json['scName'] ?? '',
+      stockNum: json['stockNum'] ?? '',
+      taxAmount: json['taxAmount'] ?? '',
+      taxPrice: json['taxPrice'] ?? '',
+
+      id: json['id'] ?? '',
+      sku: json['sku'] ?? '',
+      name: json['name'] ?? '',
+      category: json['category'] ?? '',
+      unit: json['unit'] ?? '',
+      currentStock: (json['currentStock'] ?? 0 as num).toDouble(),
+      frozenStock: (json['frozenStock'] ?? 0 as num).toDouble(),
+      minStock: (json['minStock'] ?? 0  as num).toDouble(),
+      maxStock: (json['maxStock'] ?? 0  as num).toDouble(),
+      location: json['location'] ?? '',
+      description: json['description'] ?? '',
+      //lastUpdated: DateTime.parse(json['lastUpdated']),
     );
   }
 

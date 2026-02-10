@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import '../common/Http.dart';
 import '../models/inventory_item.dart';
 
 class InventoryProvider extends ChangeNotifier {
@@ -11,16 +14,40 @@ class InventoryProvider extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   String get selectedCategory => _selectedCategory;
 
+  Future<List<InventoryItem>> get getList async {
+    var response = await Http.get(
+      "/stock/product/query",
+      queryParameters: {
+        "productCode": null,
+        "productName": null,
+        "pageIndex": 1,
+        "pageSize": 10
+      },
+    );
+    List<InventoryItem> items = [];
+    if (response["code"] == 200) {
+      for (var i = 0; i < response["data"]["datas"].length; ++i) {
+        var row = response["data"]["datas"][i];
+        items.add(InventoryItem.fromJson(row));
+      }
+    } else {
+      // 处理非 200 状态码的情况
+      throw Exception('Failed to load inventory items: ${response.statusCode}');
+    }
+    return items;
+  }
+
   // 获取过滤后的库存列表
   List<InventoryItem> get filteredItems {
+    print("-----------------------------执行");
     return _items.where((item) {
       final matchesSearch = _searchQuery.isEmpty ||
           item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           item.sku.toLowerCase().contains(_searchQuery.toLowerCase());
-      
+
       final matchesCategory = _selectedCategory == '全部' ||
           item.category == _selectedCategory;
-      
+
       return matchesSearch && matchesCategory;
     }).toList();
   }
@@ -52,6 +79,7 @@ class InventoryProvider extends ChangeNotifier {
 
   // 搜索方法
   void setSearchQuery(String query) {
+    print("搜索方法");
     _searchQuery = query;
     notifyListeners();
   }
@@ -155,8 +183,8 @@ class InventoryProvider extends ChangeNotifier {
   }
 
   // 初始化示例数据
-  void initializeSampleData() {
-    final sampleItems = [
+  Future<void> initializeSampleData() async {
+    /*final sampleItems = [
       InventoryItem(
         id: '1',
         sku: 'ITM001',
@@ -222,10 +250,29 @@ class InventoryProvider extends ChangeNotifier {
         location: 'A1-03',
         description: '苹果无线耳机',
       ),
-    ];
+    ];*/
 
-    for (final item in sampleItems) {
-      addItem(item);
+    // for (final item in sampleItems) {
+    //   addItem(item);
+    // }
+
+
+    var response = await Http.get(
+      "/stock/product/query",
+      queryParameters: {
+        "productCode": null,
+        "productName": null,
+        "pageIndex": 1,
+        "pageSize": 10
+      },
+    );
+    print(response);
+    if (response["code"] == 200) {
+      for (var item in response["data"]["datas"]) {
+        addItem(InventoryItem.fromJson(item));
+      }
     }
   }
+
+
 }

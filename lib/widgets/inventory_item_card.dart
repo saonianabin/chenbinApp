@@ -3,13 +3,14 @@ import '../models/inventory_item.dart';
 import '../utils/app_theme.dart';
 
 class InventoryItemCard extends StatelessWidget {
+  final dynamic rowData;
   final InventoryItem item;
   final VoidCallback onTap;
 
   const InventoryItemCard({
     super.key,
     required this.item,
-    required this.onTap,
+    required this.onTap, this.rowData,
   });
 
   @override
@@ -35,7 +36,7 @@ class InventoryItemCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.name,
+                          "${rowData["productName"]}",
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -43,7 +44,7 @@ class InventoryItemCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'SKU: ${item.sku}',
+                          '产品编号: ${rowData["productCode"]}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -63,7 +64,7 @@ class InventoryItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      item.stockStatus,
+                      "${rowData["scName"]}",
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -81,21 +82,21 @@ class InventoryItemCard extends StatelessWidget {
                   Expanded(
                     child: _buildStockInfo(
                       '现有库存',
-                      '${item.currentStock} ${item.unit}',
+                      '${rowData["stockNum"]}',
                       Colors.blue,
                     ),
                   ),
                   Expanded(
                     child: _buildStockInfo(
-                      '可用库存',
-                      '${item.availableStock} ${item.unit}',
+                      '含税价格',
+                      '${rowData["taxPrice"]}',
                       Colors.green,
                     ),
                   ),
                   Expanded(
                     child: _buildStockInfo(
-                      '冻结库存',
-                      '${item.frozenStock} ${item.unit}',
+                      '含税金额',
+                      '${rowData["taxAmount"]}',
                       Colors.orange,
                     ),
                   ),
@@ -114,7 +115,7 @@ class InventoryItemCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '库位: ${item.location}',
+                      '产品品牌: ${rowData["brandName"]}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],

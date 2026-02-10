@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
   // 工业风格深蓝色主题
@@ -20,6 +21,8 @@ class AppTheme {
       surface: surfaceColor,
       background: backgroundColor,
     ),
+    fontFamily: 'NotoSansSC',
+    fontFamilyFallback: const ['NotoSansSC'],
     scaffoldBackgroundColor: backgroundColor,
     appBarTheme: const AppBarTheme(
       backgroundColor: primaryColor,
@@ -27,6 +30,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle.light,
+      //systemOverlayStyle: SystemUiOverlayStyle(),
     ),
     cardTheme: CardTheme(
       elevation: 2,

@@ -1,3 +1,4 @@
+import 'package:chenbin_app/screens/inbound_order.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
@@ -30,8 +31,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WMS 仓储管理系统'),
+        title: const Text('WMS 仓储管理'),
         elevation: 0,
+        actions: [
+          ElevatedButton(onPressed: (){}, child: Text("退出"),)
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -75,7 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 24),
 
             // 库存统计卡片
-            const Text(
+            /*const Text(
               '库存概览',
               style: TextStyle(
                 fontSize: 20,
@@ -122,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24),*/
 
             // 任务统计
             const Text(
@@ -198,12 +202,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: AppTheme.warningColor,
                   onPressed: () => _navigateToOutbound(context),
                 ),
-                QuickActionButton(
-                  title: '任务管理',
-                  icon: Icons.list_alt,
-                  color: AppTheme.infoColor,
-                  onPressed: () => _navigateToMovementList(context),
-                ),
+                // QuickActionButton(
+                //   title: '任务管理',
+                //   icon: Icons.list_alt,
+                //   color: AppTheme.infoColor,
+                //   onPressed: () => _navigateToMovementList(context),
+                // ),
               ],
             ),
           ],
@@ -228,18 +232,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
+  // 入库
   void _navigateToInbound(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const MovementListScreen(
+        builder: (context) => const InboundOrder(
           type: 'inbound',
         ),
       ),
     );
   }
 
+  // 出库
   void _navigateToOutbound(BuildContext context) {
     Navigator.push(
       context,

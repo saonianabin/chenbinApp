@@ -151,7 +151,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '库存信息',
+                      '库存信息666',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -161,7 +161,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                     // 现有库存
                     _buildTextFormField(
                       controller: _currentStockController,
-                      label: '现有库存',
+                      label: '现有库存4444',
                       isRequired: true,
                       enabled: _isEditing,
                       keyboardType: TextInputType.number,
@@ -179,7 +179,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                     // 最小库存
                     _buildTextFormField(
                       controller: _minStockController,
-                      label: '最小库存',
+                      label: '最小库存444',
                       isRequired: true,
                       enabled: _isEditing,
                       keyboardType: TextInputType.number,
