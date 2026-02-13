@@ -1,5 +1,5 @@
 class InventoryItem {
-
+  // --- 外部/API 字段 ---
   final String brandName;
   final String categoryName;
   final String productCode;
@@ -8,11 +8,11 @@ class InventoryItem {
   final String scCode;
   final String scId;
   final String scName;
-  final dynamic stockNum;
-  final dynamic taxAmount;
-  final dynamic taxPrice;
+  final double stockNum; // 优化：dynamic -> double
+  final double taxAmount; // 优化：dynamic -> double
+  final double taxPrice; // 优化：dynamic -> double
 
-
+  // --- 本地/业务 字段 ---
   final String id;
   final String sku;
   final String name;
@@ -26,50 +26,46 @@ class InventoryItem {
   final String? description;
   final DateTime lastUpdated;
 
-  InventoryItem({
-    required this.brandName, required this.categoryName, required this.productCode,
-    required this.productId, required this.productName, required this.scCode, required this.scId,
-    required this.scName, required this.stockNum, required this.taxAmount, required this.taxPrice,
-
-
+  const InventoryItem({
+    required this.brandName,
+    required this.categoryName,
+    required this.productCode,
+    required this.productId,
+    required this.productName,
+    required this.scCode,
+    required this.scId,
+    required this.scName,
+    this.stockNum = 0.0,
+    this.taxAmount = 0.0,
+    this.taxPrice = 0.0,
     required this.id,
     required this.sku,
     required this.name,
     required this.category,
     required this.unit,
-    required this.currentStock,
-    required this.frozenStock,
-    required this.minStock,
-    required this.maxStock,
+    this.currentStock = 0.0,
+    this.frozenStock = 0.0,
+    this.minStock = 0.0,
+    this.maxStock = 0.0,
     this.location,
     this.description,
-    DateTime? lastUpdated,
-  }) : lastUpdated = lastUpdated ?? DateTime.now();
+    required this.lastUpdated,
+  });
 
-  // 可用库存 = 现有库存 - 冻结库存
-  double get availableStock => currentStock - frozenStock;
 
-  // 是否库存不足
-  bool get isLowStock => currentStock <= minStock;
-
-  // 是否库存过量
-  bool get isOverStock => currentStock >= maxStock;
-
-  // 库存状态
-  String get stockStatus {
-    if (isLowStock) return '库存不足';
-    if (isOverStock) return '库存过量';
-    return '库存正常';
-  }
-
-  // 获取库存状态颜色
-  String get stockStatusColor {
-    if (isLowStock) return 'red';
-    if (isOverStock) return 'orange';
-    return 'green';
-  }
-
+  // --- CopyWith (修复了错误的赋值逻辑) ---
   InventoryItem copyWith({
+    String? brandName,
+    String? categoryName,
+    String? productCode,
+    String? productId,
+    String? productName,
+    String? scCode,
+    String? scId,
+    String? scName,
+    double? stockNum,
+    double? taxAmount,
+    double? taxPrice,
     String? id,
     String? sku,
     String? name,
@@ -84,19 +80,17 @@ class InventoryItem {
     DateTime? lastUpdated,
   }) {
     return InventoryItem(
-      brandName: id ?? this.brandName,
-      categoryName: id ?? this.categoryName,
-      productCode: id ?? this.productCode,
-      productId: id ?? this.productId,
-      productName: id ?? this.productName,
-      scCode: id ?? this.scCode,
-      scId: id ?? this.scId,
-      scName: id ?? this.scName,
-      stockNum: id ?? this.stockNum,
-      taxAmount: id ?? this.taxAmount,
-      taxPrice: id ?? this.taxPrice,
-
-
+      brandName: brandName ?? this.brandName,
+      categoryName: categoryName ?? this.categoryName,
+      productCode: productCode ?? this.productCode,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      scCode: scCode ?? this.scCode,
+      scId: scId ?? this.scId,
+      scName: scName ?? this.scName,
+      stockNum: stockNum ?? this.stockNum,
+      taxAmount: taxAmount ?? this.taxAmount,
+      taxPrice: taxPrice ?? this.taxPrice,
       id: id ?? this.id,
       sku: sku ?? this.sku,
       name: name ?? this.name,
@@ -112,8 +106,20 @@ class InventoryItem {
     );
   }
 
+  // --- JSON Serialization (补全了缺失字段) ---
   Map<String, dynamic> toJson() {
     return {
+      'brandName': brandName,
+      'categoryName': categoryName,
+      'productCode': productCode,
+      'productId': productId,
+      'productName': productName,
+      'scCode': scCode,
+      'scId': scId,
+      'scName': scName,
+      'stockNum': stockNum,
+      'taxAmount': taxAmount,
+      'taxPrice': taxPrice,
       'id': id,
       'sku': sku,
       'name': name,
@@ -130,45 +136,49 @@ class InventoryItem {
   }
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
-    return InventoryItem(
-      brandName: json['brandName'] ?? '',
-      categoryName: json['categoryName'] ?? '',
-      productCode: json['productCode'] ?? '',
-      productId: json['productId'] ?? '',
-      productName: json['productName'] ?? '',
-      scCode: json['scCode'] ?? '',
-      scId: json['scId'] ?? '',
-      scName: json['scName'] ?? '',
-      stockNum: json['stockNum'] ?? '',
-      taxAmount: json['taxAmount'] ?? '',
-      taxPrice: json['taxPrice'] ?? '',
+    // 辅助函数：安全地将 JSON 值转换为 double
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
 
-      id: json['id'] ?? '',
-      sku: json['sku'] ?? '',
-      name: json['name'] ?? '',
-      category: json['category'] ?? '',
-      unit: json['unit'] ?? '',
-      currentStock: (json['currentStock'] ?? 0 as num).toDouble(),
-      frozenStock: (json['frozenStock'] ?? 0 as num).toDouble(),
-      minStock: (json['minStock'] ?? 0  as num).toDouble(),
-      maxStock: (json['maxStock'] ?? 0  as num).toDouble(),
-      location: json['location'] ?? '',
-      description: json['description'] ?? '',
-      //lastUpdated: DateTime.parse(json['lastUpdated']),
+
+
+    var inventoryItem = InventoryItem(
+      brandName: json['brandName']?.toString() ?? '',
+      categoryName: json['categoryName']?.toString() ?? '',
+      productCode: json['productCode']?.toString() ?? '',
+      productId: json['productId']?.toString() ?? '',
+      productName: json['productName']?.toString() ?? '',
+      scCode: json['scCode']?.toString() ?? '',
+      scId: json['scId']?.toString() ?? '',
+      scName: json['scName']?.toString() ?? '',
+      stockNum: parseDouble(json['stockNum']),
+      taxAmount: parseDouble(json['taxAmount']),
+      taxPrice: parseDouble(json['taxPrice']),
+      id: json['id']?.toString() ?? '',
+      sku: json['sku']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      category: json['category']?.toString() ?? '',
+      unit: json['unit']?.toString() ?? '',
+      currentStock: parseDouble(json['currentStock']),
+      frozenStock: parseDouble(json['frozenStock']),
+      minStock: parseDouble(json['minStock']),
+      maxStock: parseDouble(json['maxStock']),
+      location: json['location']?.toString(),
+      description: json['description']?.toString(),
+      // 这里的 DateTime.parse 建议加 try-catch 或者使用 tryParse，防止非法字符串崩溃
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.tryParse(json['lastUpdated'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
+    return inventoryItem;
   }
 
   @override
   String toString() {
-    return 'InventoryItem{id: $id, sku: $sku, name: $name, currentStock: $currentStock, availableStock: $availableStock}';
+    return 'InventoryItem{brandName: $brandName, categoryName: $categoryName, productCode: $productCode, productId: $productId, productName: $productName, scCode: $scCode, scId: $scId, scName: $scName, stockNum: $stockNum, taxAmount: $taxAmount, taxPrice: $taxPrice, id: $id, sku: $sku, name: $name, category: $category, unit: $unit, currentStock: $currentStock, frozenStock: $frozenStock, minStock: $minStock, maxStock: $maxStock, location: $location, description: $description, lastUpdated: $lastUpdated}';
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is InventoryItem && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }

@@ -1,12 +1,16 @@
-import 'package:chenbin_app/screens/login_page.dart';
+import 'package:chenbin_app/common/router.dart';
+import 'package:chenbin_app/providers/auth_provider.dart';
+import 'package:chenbin_app/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:provider/provider.dart';
 import 'common/SPUtil.dart';
 import 'providers/inventory_provider.dart';
 import 'providers/movement_provider.dart';
-import 'screens/dashboard_screen.dart';
 import 'utils/app_theme.dart';
+
+final ThemeProvider themeProvider = ThemeProvider();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,13 +46,22 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => InventoryProvider()),
         ChangeNotifierProvider(create: (context) => MovementProvider()),
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
       ],
-      child: MaterialApp(
-        title: 'WMS 仓储管理系统',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const LoginPage(),
-        locale: const Locale('zh', 'CN'),
+      child: AnimatedBuilder(
+        animation: themeProvider,
+        builder: (context, child) {
+          return MaterialApp.router(
+            routerConfig: getRouter,
+            title: 'WMS 仓储管理系统',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode, // 当前模式
+            theme: AppTheme.lightTheme,         // 亮色样式
+            darkTheme: AppTheme.darkTheme,      // 深色样式
+            builder: FlutterSmartDialog.init(),
+            locale: const Locale('zh', 'CN'),
+          );
+        }
       ),
     );
   }

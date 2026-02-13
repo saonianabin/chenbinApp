@@ -3,14 +3,12 @@ import '../models/inventory_item.dart';
 import '../utils/app_theme.dart';
 
 class InventoryItemCard extends StatelessWidget {
-  final dynamic rowData;
-  final InventoryItem item;
+  final InventoryItem rowData;
   final VoidCallback onTap;
 
   const InventoryItemCard({
     super.key,
-    required this.item,
-    required this.onTap, this.rowData,
+    required this.onTap, required this.rowData,
   });
 
   @override
@@ -36,7 +34,7 @@ class InventoryItemCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "${rowData["productName"]}",
+                          rowData.productName,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -44,7 +42,7 @@ class InventoryItemCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '产品编号: ${rowData["productCode"]}',
+                          '产品编号: ${rowData.productCode}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -59,17 +57,17 @@ class InventoryItemCard extends StatelessWidget {
                       horizontal: 8,
                       vertical: 4,
                     ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(item.stockStatusColor).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    // decoration: BoxDecoration(
+                    //   color: _getStatusColor(item.stockStatusColor).withOpacity(0.1),
+                    //   borderRadius: BorderRadius.circular(12),
+                    // ),
                     child: Text(
-                      "${rowData["scName"]}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _getStatusColor(item.stockStatusColor),
-                      ),
+                      "${rowData.scName}",
+                      // style: TextStyle(
+                      //   fontSize: 12,
+                      //   fontWeight: FontWeight.w600,
+                      //   color: _getStatusColor(item.stockStatusColor),
+                      // ),
                     ),
                   ),
                 ],
@@ -82,21 +80,21 @@ class InventoryItemCard extends StatelessWidget {
                   Expanded(
                     child: _buildStockInfo(
                       '现有库存',
-                      '${rowData["stockNum"]}',
+                      '${rowData.stockNum}',
                       Colors.blue,
                     ),
                   ),
                   Expanded(
                     child: _buildStockInfo(
                       '含税价格',
-                      '${rowData["taxPrice"]}',
+                      '${rowData.taxPrice}',
                       Colors.green,
                     ),
                   ),
                   Expanded(
                     child: _buildStockInfo(
                       '含税金额',
-                      '${rowData["taxAmount"]}',
+                      '${rowData.taxAmount}',
                       Colors.orange,
                     ),
                   ),
@@ -105,25 +103,23 @@ class InventoryItemCard extends StatelessWidget {
               const SizedBox(height: 12),
 
               // 库位信息
-              if (item.location != null) ...[
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '产品品牌: ${rowData.brandName}',
+                    style: TextStyle(
+                      fontSize: 14,
                       color: Colors.grey[600],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '产品品牌: ${rowData["brandName"]}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ],
           ),
         ),

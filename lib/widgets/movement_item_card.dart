@@ -60,7 +60,7 @@ class MovementItemCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${movement.typeDisplayName} | ${movement.supplierOrCustomer}',
+                          '${movement.typeDisplayName}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -76,15 +76,15 @@ class MovementItemCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(movement.status).withOpacity(0.1),
+                      //color: _getStatusColor(movement.status).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      movement.statusDisplayName,
+                      "movement.statusDisplayName",
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: _getStatusColor(movement.status),
+                        //color: _getStatusColor(movement.status),
                       ),
                     ),
                   ),
@@ -98,21 +98,21 @@ class MovementItemCard extends StatelessWidget {
                   Expanded(
                     child: _buildInfoItem(
                       '总数量',
-                      '${movement.totalQuantity}',
+                      '${movement}',
                       Icons.analytics,
                     ),
                   ),
                   Expanded(
                     child: _buildInfoItem(
                       '项目数',
-                      '${movement.itemCount}',
+                      '${movement}',
                       Icons.inventory_2,
                     ),
                   ),
                   Expanded(
                     child: _buildInfoItem(
                       '仓库',
-                      movement.warehouse,
+                      "movement",
                       Icons.warehouse,
                     ),
                   ),
@@ -130,7 +130,7 @@ class MovementItemCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '创建时间: ${_formatDateTime(movement.createdAt)}',
+                    '创建时间: ',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -141,14 +141,14 @@ class MovementItemCard extends StatelessWidget {
                     Icon(
                       Icons.check_circle,
                       size: 16,
-                      color: _getStatusColor(movement.status),
+                      //color: _getStatusColor(movement.status),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '处理时间: ${_formatDateTime(movement.processedAt!)}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: _getStatusColor(movement.status),
+                        //color: _getStatusColor(movement.status),
                       ),
                     ),
                   ],

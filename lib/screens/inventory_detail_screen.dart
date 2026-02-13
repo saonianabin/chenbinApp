@@ -49,20 +49,20 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
   }
 
   void _loadItem() {
-    final inventoryProvider = context.read<InventoryProvider>();
-    final item = inventoryProvider.getItemById(widget.itemId);
-    if (item != null) {
-      setState(() {
-        _item = item;
-        _nameController.text = item.name;
-        _currentStockController.text = item.currentStock.toString();
-        _frozenStockController.text = item.frozenStock.toString();
-        _minStockController.text = item.minStock.toString();
-        _maxStockController.text = item.maxStock.toString();
-        _locationController.text = item.location ?? '';
-        _descriptionController.text = item.description ?? '';
-      });
-    }
+    // final inventoryProvider = context.read<InventoryProvider>();
+    // final item = inventoryProvider.getItemById(widget.itemId);
+    // if (item != null) {
+    //   setState(() {
+    //     _item = item;
+    //     _nameController.text = item.name;
+    //     _currentStockController.text = item.currentStock.toString();
+    //     _frozenStockController.text = item.frozenStock.toString();
+    //     _minStockController.text = item.minStock.toString();
+    //     _maxStockController.text = item.maxStock.toString();
+    //     _locationController.text = item.location ?? '';
+    //     _descriptionController.text = item.description ?? '';
+    //   });
+    // }
   }
 
   @override
@@ -233,7 +233,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     // 最后更新时间
-                    _buildInfoRow('最后更新', _formatDateTime(_item!.lastUpdated)),
+                    //_buildInfoRow('最后更新', _formatDateTime(_item!.lastUpdated)),
                   ],
                 ),
               ),
@@ -297,15 +297,15 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
 
   Widget _buildStockStatusCard() {
     final availableStock = _item!.currentStock - _item!.frozenStock;
-    final stockStatus = _item!.stockStatus;
+    final stockStatus = _item!;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _getStatusColor(_item!.stockStatusColor).withOpacity(0.1),
+        color: _getStatusColor("").withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: _getStatusColor(_item!.stockStatusColor).withOpacity(0.3),
+          color: _getStatusColor("null").withOpacity(0.3),
         ),
       ),
       child: Column(
@@ -321,7 +321,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                 '$availableStock ${_item!.unit}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: _getStatusColor(_item!.stockStatusColor),
+                  color: _getStatusColor(""),
                 ),
               ),
             ],
@@ -334,13 +334,7 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
                 '库存状态:',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              Text(
-                stockStatus,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: _getStatusColor(_item!.stockStatusColor),
-                ),
-              ),
+
             ],
           ),
         ],
@@ -363,10 +357,10 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
           description: _descriptionController.text.trim().isEmpty
               ? null
               : _descriptionController.text.trim(),
-          lastUpdated: DateTime.now(),
+          //lastUpdated: DateTime.now(),
         );
 
-        context.read<InventoryProvider>().updateItem(updatedItem);
+        //context.read<InventoryProvider>().updateItem(updatedItem);
 
         setState(() {
           _item = updatedItem;

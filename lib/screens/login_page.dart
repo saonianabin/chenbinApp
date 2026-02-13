@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
 import 'dart:io';
+import 'package:chenbin_app/providers/auth_provider.dart';
 import 'package:chenbin_app/screens/dashboard_screen.dart';
-
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../common/SPUtil.dart';
 import '../common/SnackBarUtils.dart';
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
 import '../common/Http.dart';
 import 'package:flutter_app_update/flutter_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -147,6 +148,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 加载状态
+    var isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -293,9 +297,14 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           // 登录逻辑
-          _handleLogin();
+          //_handleLogin();
+          var login = await context.read<AuthProvider>().login(_usernameController.text.trim(), _passwordController.text.trim());
+          if (login && context.mounted) {
+            await context.read<AuthProvider>().getUserInfo();
+            context.go("/home");
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
@@ -347,7 +356,7 @@ class _LoginPageState extends State<LoginPage> {
       SnackBarUtils.showWarning(context, "请先设置服务器IP和端口");
       return;
     }
-    TDToast.showLoading(text: "登录中...",context: context);
+    //TDToast.showLoading(text: "登录中...",context: context);
     Future.delayed(const Duration(milliseconds: 1000), () {});
     try {
       final response = await Http.post<Map<String, dynamic>>('/auth/login', queryParameters: {
@@ -358,21 +367,19 @@ class _LoginPageState extends State<LoginPage> {
 
 
       if (response['code'] == 200) {
-
-        log(jsonEncode(response['data']));
-
         SPUtil.setString('token', response['data']['token']);
         SPUtil.setString('userName_login', username);
         SPUtil.setString('password_login', password);
-        uploadDeviceInfo(username,password);
+        //uploadDeviceInfo(username,password);
         // 跳转到主页
         //Navigator.of(context).pushReplacementNamed('/indexPage');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const DashboardScreen(),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const DashboardScreen(),
+        //   ),
+        // );
+        context.go("/home");
       }else if (response['code'] == 500) {
         // 提示用户
         SnackBarUtils.showError(context, response['msg']);
@@ -383,15 +390,58 @@ class _LoginPageState extends State<LoginPage> {
       SnackBarUtils.showError(context, "网络连接异常");
     }finally {
       // 登录完成，关闭加载框
-      TDToast.dismissLoading();
+      //TDToast.dismissLoading();
     }
   }
 
   void _showServerSettings() {
-    showDialog(
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
+        ),
+        builder: (_){
+      return Padding(
+          padding: EdgeInsets.only(
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+          ),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _serverController,
+                  keyboardType: TextInputType.number,
+                  obscureText: false,
+                  decoration: const InputDecoration(
+                    labelText: '服务器地址',
+                    hintText: '请输入服务器地址',
+                  ),
+                ),
+                const SizedBox(height: 16,),
+                TextField(
+                    controller: _portController,
+                    keyboardType: TextInputType.number,
+                    obscureText: false,
+                    decoration: const InputDecoration(
+                      labelText: '端口号',
+                      hintText: '请输入端口号',
+                    )
+                ),
+                const SizedBox(height: 16,),
+              ]
+          )
+      );
+    });
+    /*showDialog(
       context: context,
       builder: (BuildContext context) {
-        return TDAlertDialog(
+        return Container();
+        return AlertDialog(
           title: "服务器设置",
           contentWidget: Column(
             children: [
@@ -421,7 +471,7 @@ class _LoginPageState extends State<LoginPage> {
             var ip = _serverController.text;
             var port = _portController.text;
             if (ip.isEmpty || port.isEmpty) {
-              TDToast.showWarning("请输入服务器地址和端口", context: context);
+              //TDToast.showWarning("请输入服务器地址和端口", context: context);
               return;
             }
             Navigator.of(context).pop();
@@ -431,6 +481,6 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
       },
-    );
+    );*/
   }
 }

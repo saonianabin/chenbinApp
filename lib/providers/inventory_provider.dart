@@ -1,278 +1,125 @@
-import 'dart:convert';
-
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import '../common/Http.dart';
 import '../models/inventory_item.dart';
 
 class InventoryProvider extends ChangeNotifier {
+  // 核心数据
   final List<InventoryItem> _items = [];
   String _searchQuery = '';
-  String _selectedCategory = '全部';
 
-  // Getters
+  final EasyRefreshController _controller = EasyRefreshController(
+      controlFinishRefresh: true,
+      controlFinishLoad: true,
+  );
+
+  EasyRefreshController get controller => _controller;
+
+  // 分页参数
+  int _page = 1;
+  final int _pageSize = 10;
+  int _total = 0;
+
+  int get page => _page;
+
+  // 状态控制（适配 EasyRefresh）
+  bool _isLoading = false; // 是否正在加载
+  bool _hasMore = true;    // 是否有更多数据
+
+  // Getters（对外暴露不可变数据）
   List<InventoryItem> get items => List.unmodifiable(_items);
+  bool get isLoading => _isLoading;
+  bool get hasMore => _hasMore;
   String get searchQuery => _searchQuery;
-  String get selectedCategory => _selectedCategory;
 
-  Future<List<InventoryItem>> get getList async {
-    var response = await Http.get(
-      "/stock/product/query",
-      queryParameters: {
-        "productCode": null,
-        "productName": null,
-        "pageIndex": 1,
-        "pageSize": 10
-      },
-    );
-    List<InventoryItem> items = [];
-    if (response["code"] == 200) {
-      for (var i = 0; i < response["data"]["datas"].length; ++i) {
-        var row = response["data"]["datas"][i];
-        items.add(InventoryItem.fromJson(row));
+  /// 核心加载方法（区分刷新/加载更多）
+  /// [isRefresh]：true=下拉刷新，false=上拉加载更多
+  Future<void> fetchInventoryItems({bool isRefresh = true}) async {
+    // 防止重复请求
+    if (_isLoading) return;
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // 发起网络请求
+      var response = await Http.get(
+        "/stock/product/query",
+        queryParameters: {
+          "productCode": null,
+          "productName": _searchQuery,
+          "pageIndex": _page,
+          "pageSize": _pageSize
+        },
+      );
+
+      // 处理响应
+      if (response["code"] == 200) {
+        // 解析总数和数据列表
+        _total = response["data"]["totalCount"] ?? 0;
+        List<dynamic> datas = response["data"]["datas"] ?? [];
+
+        // 刷新：清空旧数据；加载更多：保留旧数据
+        if (isRefresh) {
+          _items.clear();
+        }
+
+        // 添加新数据
+        List<InventoryItem> newItems = datas
+            .map((row) => InventoryItem.fromJson(row))
+            .toList();
+        _items.addAll(newItems);
+
+        // 判断是否有更多数据
+        _hasMore = _items.length < _total;
+      } else {
+        // 接口返回错误码
+        debugPrint("获取库存数据失败：${response["msg"] ?? "未知错误"}");
       }
-    } else {
-      // 处理非 200 状态码的情况
-      throw Exception('Failed to load inventory items: ${response.statusCode}');
-    }
-    return items;
-  }
-
-  // 获取过滤后的库存列表
-  List<InventoryItem> get filteredItems {
-    print("-----------------------------执行");
-    return _items.where((item) {
-      final matchesSearch = _searchQuery.isEmpty ||
-          item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          item.sku.toLowerCase().contains(_searchQuery.toLowerCase());
-
-      final matchesCategory = _selectedCategory == '全部' ||
-          item.category == _selectedCategory;
-
-      return matchesSearch && matchesCategory;
-    }).toList();
-  }
-
-  // 获取所有分类
-  List<String> get categories {
-    final categories = _items.map((item) => item.category).toSet().toList();
-    categories.insert(0, '全部');
-    return categories;
-  }
-
-  // 统计数据
-  Map<String, dynamic> get statistics {
-    final totalItems = _items.length;
-    final lowStockItems = _items.where((item) => item.isLowStock).length;
-    final overStockItems = _items.where((item) => item.isOverStock).length;
-    final totalValue = _items.fold<double>(
-      0.0,
-      (sum, item) => sum + item.currentStock,
-    );
-
-    return {
-      'totalItems': totalItems,
-      'lowStockItems': lowStockItems,
-      'overStockItems': overStockItems,
-      'totalValue': totalValue,
-    };
-  }
-
-  // 搜索方法
-  void setSearchQuery(String query) {
-    print("搜索方法");
-    _searchQuery = query;
-    notifyListeners();
-  }
-
-  // 设置分类筛选
-  void setSelectedCategory(String category) {
-    _selectedCategory = category;
-    notifyListeners();
-  }
-
-  // 添加库存商品
-  void addItem(InventoryItem item) {
-    _items.add(item);
-    notifyListeners();
-  }
-
-  // 根据ID获取库存商品
-  InventoryItem? getItemById(String id) {
-    try {
-      return _items.firstWhere((item) => item.id == id);
     } catch (e) {
-      return null;
-    }
-  }
-
-  // 根据SKU获取库存商品
-  InventoryItem? getItemBySku(String sku) {
-    try {
-      return _items.firstWhere((item) => item.sku == sku);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // 增加库存
-  void increaseStock(String itemId, double quantity, {String? reason}) {
-    final item = getItemById(itemId);
-    if (item != null) {
-      final updatedItem = item.copyWith(
-        currentStock: item.currentStock + quantity,
-        lastUpdated: DateTime.now(),
-      );
-      _updateItem(updatedItem);
-    }
-  }
-
-  // 减少库存
-  void decreaseStock(String itemId, double quantity, {String? reason}) {
-    final item = getItemById(itemId);
-    if (item != null && item.availableStock >= quantity) {
-      final updatedItem = item.copyWith(
-        currentStock: item.currentStock - quantity,
-        lastUpdated: DateTime.now(),
-      );
-      _updateItem(updatedItem);
-    }
-  }
-
-  // 冻结库存
-  void freezeStock(String itemId, double quantity, {String? reason}) {
-    final item = getItemById(itemId);
-    if (item != null && item.availableStock >= quantity) {
-      final updatedItem = item.copyWith(
-        frozenStock: item.frozenStock + quantity,
-        lastUpdated: DateTime.now(),
-      );
-      _updateItem(updatedItem);
-    }
-  }
-
-  // 解冻库存
-  void unfreezeStock(String itemId, double quantity, {String? reason}) {
-    final item = getItemById(itemId);
-    if (item != null && item.frozenStock >= quantity) {
-      final updatedItem = item.copyWith(
-        frozenStock: item.frozenStock - quantity,
-        lastUpdated: DateTime.now(),
-      );
-      _updateItem(updatedItem);
-    }
-  }
-
-  // 更新库存商品
-  void _updateItem(InventoryItem updatedItem) {
-    final index = _items.indexWhere((item) => item.id == updatedItem.id);
-    if (index != -1) {
-      _items[index] = updatedItem;
+      // 捕获网络异常/解析异常
+      debugPrint("加载库存数据异常：$e");
+      _hasMore = false; // 出错时停止加载更多
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // 删除库存商品
-  void removeItem(String itemId) {
-    _items.removeWhere((item) => item.id == itemId);
+  /// 搜索方法（重置页码+刷新）
+  void setSearchQuery(String query) {
+    if (_searchQuery == query) return; // 避免重复搜索
+    _searchQuery = query;
+    _page = 1; // 搜索时重置页码
+    fetchInventoryItems(isRefresh: true);
+  }
+
+  /// 下拉刷新
+  Future<void> onRefresh() async {
+    _page = 1;
+    await fetchInventoryItems(isRefresh: true);
+    _controller.finishRefresh();
+  }
+
+  /// 上拉加载更多
+  Future<void> onLoad() async {
+    if (!_hasMore || _isLoading) return; // 无更多/加载中则返回
+    _page++;
+    await fetchInventoryItems(isRefresh: false);
+  }
+
+  /// 重置数据（可选，如页面销毁前）
+  void reset() {
+    _items.clear();
+    _searchQuery = '';
+    _page = 1;
+    _total = 0;
+    _isLoading = false;
+    _hasMore = true;
     notifyListeners();
   }
 
-  // 更新库存商品信息
-  void updateItem(InventoryItem updatedItem) {
-    _updateItem(updatedItem);
+  List<InventoryItem> fetchList() {
+    return _items;
   }
-
-  // 初始化示例数据
-  Future<void> initializeSampleData() async {
-    /*final sampleItems = [
-      InventoryItem(
-        id: '1',
-        sku: 'ITM001',
-        name: 'iPhone 15 Pro',
-        category: '手机数码',
-        unit: '台',
-        currentStock: 150.0,
-        frozenStock: 20.0,
-        minStock: 50.0,
-        maxStock: 500.0,
-        location: 'A1-01',
-        description: '苹果最新旗舰手机',
-      ),
-      InventoryItem(
-        id: '2',
-        sku: 'ITM002',
-        name: 'MacBook Pro 14寸',
-        category: '电脑办公',
-        unit: '台',
-        currentStock: 25.0,
-        frozenStock: 5.0,
-        minStock: 10.0,
-        maxStock: 100.0,
-        location: 'B2-03',
-        description: '苹果笔记本电脑',
-      ),
-      InventoryItem(
-        id: '3',
-        sku: 'ITM003',
-        name: '小米13',
-        category: '手机数码',
-        unit: '台',
-        currentStock: 80.0,
-        frozenStock: 15.0,
-        minStock: 30.0,
-        maxStock: 300.0,
-        location: 'A1-02',
-        description: '小米旗舰手机',
-      ),
-      InventoryItem(
-        id: '4',
-        sku: 'ITM004',
-        name: '华为MateBook X Pro',
-        category: '电脑办公',
-        unit: '台',
-        currentStock: 8.0,
-        frozenStock: 2.0,
-        minStock: 20.0,
-        maxStock: 80.0,
-        location: 'B2-01',
-        description: '华为高端笔记本',
-      ),
-      InventoryItem(
-        id: '5',
-        sku: 'ITM005',
-        name: 'AirPods Pro 2',
-        category: '手机数码',
-        unit: '个',
-        currentStock: 200.0,
-        frozenStock: 30.0,
-        minStock: 50.0,
-        maxStock: 800.0,
-        location: 'A1-03',
-        description: '苹果无线耳机',
-      ),
-    ];*/
-
-    // for (final item in sampleItems) {
-    //   addItem(item);
-    // }
-
-
-    var response = await Http.get(
-      "/stock/product/query",
-      queryParameters: {
-        "productCode": null,
-        "productName": null,
-        "pageIndex": 1,
-        "pageSize": 10
-      },
-    );
-    print(response);
-    if (response["code"] == 200) {
-      for (var item in response["data"]["datas"]) {
-        addItem(InventoryItem.fromJson(item));
-      }
-    }
-  }
-
-
 }

@@ -1,3 +1,4 @@
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../common/Http.dart';
@@ -17,33 +18,13 @@ class InventoryListScreen extends StatefulWidget {
 }
 
 class _InventoryListScreenState extends State<InventoryListScreen> {
-  List _listAll = [];
-
-  void _fetchInData() async {
-    var response = await Http.get(
-      "/stock/product/query",
-      queryParameters: {
-        "productCode": null,
-        "productName": null,
-        "pageIndex": 1,
-        "pageSize": 10
-      },
-    );
-    print(response);
-    if (response["code"] == 200) {
-      setState(() {
-        _listAll = response["data"]["datas"];
-        //_focusNode.unfocus();
-      });
-    } else {
-      SnackBarUtils.showError(context, response["msg"]);
-    }
-  }
-
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<InventoryProvider>(context, listen: false).fetchInventoryItems();
+    });
   }
 
 
@@ -57,7 +38,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               // 刷新数据
-              context.read<InventoryProvider>().initializeSampleData();
+              context.read<InventoryProvider>().fetchInventoryItems();
             },
           ),
         ],
@@ -66,51 +47,11 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
         children: [
           // 搜索栏
           const CustomSearchBar(),
-          // 分类筛选
-          /*Consumer<InventoryProvider>(
-            builder: (context, inventoryProvider, child) {
-              return Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: inventoryProvider.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = inventoryProvider.categories[index];
-                    final isSelected = category == inventoryProvider.selectedCategory;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(category),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          inventoryProvider.setSelectedCategory(category);
-                        },
-                        backgroundColor: Colors.grey[200],
-                        selectedColor: AppTheme.primaryColor.withOpacity(0.2),
-                        checkmarkColor: AppTheme.primaryColor,
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),*/
           // 库存列表
           Expanded(
             child: Consumer<InventoryProvider>(
               builder: (context, inventoryProvider, child) {
-                final filteredItems = [];
-                //final filteredItems = inventoryProvider.filteredItems;
-
-                // inventoryProvider.getList.then((value) => {
-                //   setState(() {
-                //   print("返回参数");
-                //   print(value);
-                //   })
-                // });
-
-                
+                List<InventoryItem> filteredItems = inventoryProvider.fetchList();
                 if (filteredItems.isEmpty) {
                   return const Center(
                     child: Column(
@@ -134,32 +75,52 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _listAll.length,
-                  itemBuilder: (context, index) {
-                    var item = filteredItems[index];
-                    var rowData = _listAll[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: InventoryItemCard(
-                        item: item,
-                        rowData: rowData,
-                        onTap: (){},
-                        //onTap: () => _navigateToDetail(context, item.id),
-                      ),
-                    );
-                  },
+                return EasyRefresh(
+                  controller: inventoryProvider.controller,
+                  onRefresh: inventoryProvider.onRefresh,
+                  onLoad: inventoryProvider.onLoad,
+                  header: const ClassicHeader(
+                    dragText: '下拉刷新',
+                    armedText: '释放开始',
+                    readyText: '正在刷新...',
+                    processingText: '正在获取最新数据...',
+                    processedText: '刷新成功',
+                    noMoreText: '没有更多记录',
+                    failedText: '获取记录失败',
+                    messageText: '最后更新于 %T',
+                  ),
+                  footer: ClassicFooter(
+                    dragText: '上拉加载',
+                    armedText: '释放加载更多',
+                    processingText: '正在检索历史记录...',
+                    noMoreText: '已显示所有审批历史',
+                    messageText: '已加载第 ${inventoryProvider.page} 页数据',
+                  ),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredItems.length,
+                    itemBuilder: (context, index) {
+                      var item = filteredItems[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: InventoryItemCard(
+                          rowData: item,
+                          onTap: (){},
+                          //onTap: () => _navigateToDetail(context, item.id),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showScanDialog(context),
-        child: const Icon(Icons.qr_code_scanner),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () => _showScanDialog(context),
+      //   child: const Icon(Icons.qr_code_scanner),
+      // ),
     );
   }
 
@@ -188,14 +149,14 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
               Navigator.pop(context);
               // 模拟扫码结果
               final inventoryProvider = context.read<InventoryProvider>();
-              final item = inventoryProvider.getItemBySku('ITM001');
-              if (item != null) {
-                _navigateToDetail(context, item.id);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('未找到对应商品')),
-                );
-              }
+              //final item = inventoryProvider.getItemBySku('ITM001');
+              // if (item != null) {
+              //   _navigateToDetail(context, item.id);
+              // } else {
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     const SnackBar(content: Text('未找到对应商品')),
+              //   );
+              // }
             },
             child: const Text('确认'),
           ),

@@ -38,7 +38,7 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
 
   void _loadMovement() {
     final movementProvider = context.read<MovementProvider>();
-    final movement = movementProvider.getMovementById(widget.movementId);
+    /*final movement = movementProvider.getMovementById(widget.movementId);
     if (movement != null) {
       setState(() {
         _movement = movement;
@@ -50,7 +50,7 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
           text: detail.actualQuantity?.toString() ?? '',
         );
       }
-    }
+    }*/
   }
 
   @override
@@ -160,15 +160,15 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(_movement!.status).withOpacity(0.1),
+                    //color: _getStatusColor(_movement!.status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    _movement!.statusDisplayName,
+                    "_movement!.statusDisplayName",
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _getStatusColor(_movement!.status),
+                      //color: _getStatusColor(_movement!.status),
                     ),
                   ),
                 ),
@@ -177,13 +177,13 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
             const SizedBox(height: 16),
             _buildInfoRow('单据编号', _movement!.movementNumber),
             const SizedBox(height: 8),
-            _buildInfoRow(_movement!.type == MovementType.inbound ? '供应商' : '客户', _movement!.supplierOrCustomer),
+            //_buildInfoRow(_movement!.type == MovementType.inbound ? '供应商' : '客户', _movement!.supplierOrCustomer),
             const SizedBox(height: 8),
-            _buildInfoRow('仓库', _movement!.warehouse),
+            //_buildInfoRow('仓库', _movement!.warehouse),
             const SizedBox(height: 8),
             _buildInfoRow('操作人', _movement!.operator),
             const SizedBox(height: 8),
-            _buildInfoRow('创建时间', _formatDateTime(_movement!.createdAt)),
+            //_buildInfoRow('创建时间', _formatDateTime(_movement!.createdAt)),
             if (_movement!.processedAt != null) ...[
               const SizedBox(height: 8),
               _buildInfoRow('处理时间', _formatDateTime(_movement!.processedAt!)),
@@ -264,7 +264,7 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildInfoRow('商品', detail.itemName),
+          //_buildInfoRow('商品', detail.itemName),
           const SizedBox(height: 8),
           _buildInfoRow('SKU', detail.sku),
           const SizedBox(height: 8),
@@ -277,9 +277,9 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
               ),
               if (_movement!.type == MovementType.outbound) ...[
                 const SizedBox(width: 16),
-                Expanded(
-                  child: _buildInfoRow('现有库存', _getCurrentStock(detail.inventoryItemId)),
-                ),
+                // Expanded(
+                //   child: _buildInfoRow('现有库存', _getCurrentStock(detail.inventoryItemId)),
+                // ),
               ],
             ],
           ),
@@ -295,19 +295,19 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
                 suffixText: detail.unit,
               ),
               onChanged: (value) {
-                if (value.isNotEmpty) {
-                  context.read<MovementProvider>().updateActualQuantity(
-                    _movement!.id,
-                    detail.id,
-                    double.tryParse(value) ?? 0.0,
-                  );
-                }
+                // if (value.isNotEmpty) {
+                //   context.read<MovementProvider>().updateActualQuantity(
+                //     _movement!.id,
+                //     detail.id,
+                //     double.tryParse(value) ?? 0.0,
+                //   );
+                // }
               },
             ),
           ] else ...[
             _buildInfoRow(
               '实${_movement!.type == MovementType.inbound ? '收' : '发'}数量',
-              '${detail.finalQuantity} ${detail.unit}',
+              '${detail} ${detail.unit}',
             ),
           ],
           if (detail.unitPrice != null) ...[
@@ -428,14 +428,14 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
       if (_movement!.type == MovementType.outbound) {
         final inventoryProvider = context.read<InventoryProvider>();
         for (final detail in _movement!.details) {
-          final item = inventoryProvider.getItemById(detail.inventoryItemId);
-          if (item == null || item.availableStock < detail.finalQuantity) {
-            throw Exception('库存不足：${detail.itemName} (需要: ${detail.finalQuantity}, 可用: ${item?.availableStock ?? 0})');
-          }
+          // final item = inventoryProvider.getItemById(detail.inventoryItemId);
+          // if (item == null) {
+          //   throw Exception('库存不足：${detail.itemName} (需要: ${detail.finalQuantity}, 可用: ${item ?? 0})');
+          // }
         }
       }
 
-      context.read<MovementProvider>().approveMovement(_movement!.id, context);
+      //context.read<MovementProvider>().approveMovement(_movement!.id, context);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -472,7 +472,7 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
     try {
       await Future.delayed(const Duration(milliseconds: 500)); // 模拟处理时间
 
-      context.read<MovementProvider>().rejectMovement(_movement!.id, reason);
+      //context.read<MovementProvider>().rejectMovement(_movement!.id, reason);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -501,11 +501,11 @@ class _MovementDetailScreenState extends State<MovementDetailScreen> {
     }
   }
 
-  String _getCurrentStock(String inventoryItemId) {
-    final inventoryProvider = context.read<InventoryProvider>();
-    final item = inventoryProvider.getItemById(inventoryItemId);
-    return item != null ? '${item.availableStock} ${item.unit}' : '未知';
-  }
+  // String _getCurrentStock(String inventoryItemId) {
+  //   final inventoryProvider = context.read<InventoryProvider>();
+  //   final item = inventoryProvider.getItemById(inventoryItemId);
+  //   return item != null ? '${item} ${item.unit}' : '未知';
+  // }
 
   Color _getTypeColor(MovementType type) {
     switch (type) {

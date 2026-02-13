@@ -77,6 +77,25 @@ class AppTheme {
       foregroundColor: Colors.white,
     ),
   );
+
+
+  // 2. 深色主题 (Dark Mode)
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: Colors.blue[900],
+    // 深色模式建议用深灰(#121212)而不是纯黑，对眼睛更友好
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    cardColor: const Color(0xFF1E1E1E), // 卡片深灰
+    dividerColor: const Color(0xFF2C2C2C),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF1F1F1F),
+      foregroundColor: Colors.white,
+    ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white70),
+    ),
+  );
   
   // 自定义颜色扩展
   static const Color successColor = Color(0xFF4CAF50);
